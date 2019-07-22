@@ -1,0 +1,3 @@
+Trying to acquire lock on [resource1]
+Found 0 available resource(s). Waiting for correct amount: 1.
+[resource1] is locked, waiting...

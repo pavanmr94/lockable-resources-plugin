@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.model.Queue_-State>
+  <counter>2</counter>
+  <items>
+    <hudson.model.Queue_-BlockedItem>
+      <actions>
+        <hudson.model.CauseAction>
+          <causes>
+            <hudson.model.Cause_-UserIdCause>
+              <userId>tobias</userId>
+            </hudson.model.Cause_-UserIdCause>
+          </causes>
+        </hudson.model.CauseAction>
+      </actions>
+      <id>2</id>
+      <task class="hudson.model.FreeStyleProject">f</task>
+      <inQueueSince>1559488260507</inQueueSince>
+      <buildableStartMilliseconds>1559488260521</buildableStartMilliseconds>
+      <outer-class>queue</outer-class>
+    </hudson.model.Queue_-BlockedItem>
+  </items>
+</hudson.model.Queue_-State>

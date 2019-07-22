@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<flow-build plugin="workflow-job@1.14">
+  <actions>
+    <hudson.model.CauseAction>
+      <causes>
+        <hudson.model.Cause_-UserIdCause>
+          <userId>tobias</userId>
+        </hudson.model.Cause_-UserIdCause>
+      </causes>
+    </hudson.model.CauseAction>
+  </actions>
+  <queueId>2</queueId>
+  <timestamp>1559514646444</timestamp>
+  <startTime>1559514646448</startTime>
+  <duration>0</duration>
+  <keepLog>false</keepLog>
+  <execution class="org.jenkinsci.plugins.workflow.cps.CpsFlowExecution">
+    <result>SUCCESS</result>
+    <script>lock(&apos;resource1&apos;) {
+    echo &apos;inside&apos;
+}
+echo &apos;Finish&apos;</script>
+    <loadedScripts class="map"/>
+    <sandbox>false</sandbox>
+    <iota>3</iota>
+    <head>1:3</head>
+    <start>2</start>
+  </execution>
+  <logsToCopy class="java.util.concurrent.ConcurrentSkipListMap" serialization="custom">
+    <unserializable-parents/>
+    <java.util.concurrent.ConcurrentSkipListMap>
+      <default/>
+      <string>3</string>
+      <long>134</long>
+      <null/>
+    </java.util.concurrent.ConcurrentSkipListMap>
+  </logsToCopy>
+  <checkouts class="hudson.util.PersistedList"/>
+</flow-build>

@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<org.jenkins.plugins.lockableresources.LockableResourcesManager plugin="lockable-resources@1.8">
+  <resources>
+    <org.jenkins.plugins.lockableresources.LockableResource>
+      <name>resource1</name>
+      <description></description>
+      <labels></labels>
+      <reservedBy>tobias</reservedBy>
+      <queueItemId>0</queueItemId>
+      <queuingStarted>0</queuingStarted>
+      <queuedContexts>
+        <org.jenkinsci.plugins.workflow.cps.CpsStepContext plugin="workflow-cps@1.14">
+          <executionRef class="flow-owner" plugin="workflow-job@1.14">
+            <job>p</job>
+            <id>1</id>
+          </executionRef>
+          <id>3</id>
+          <bodyHeads/>
+          <body class="org.jenkinsci.plugins.workflow.cps.StaticBodyReference" resolves-to="org.jenkinsci.plugins.workflow.cps.HandleBodyReference">
+            <id>1</id>
+          </body>
+          <threadId>0</threadId>
+          <stepDescriptorId>org.jenkins.plugins.lockableresources.LockStep</stepDescriptorId>
+        </org.jenkinsci.plugins.workflow.cps.CpsStepContext>
+      </queuedContexts>
+    </org.jenkins.plugins.lockableresources.LockableResource>
+  </resources>
+</org.jenkins.plugins.lockableresources.LockableResourcesManager>
