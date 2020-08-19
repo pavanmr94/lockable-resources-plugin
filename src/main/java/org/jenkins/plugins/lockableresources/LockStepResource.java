@@ -53,7 +53,7 @@ public class LockStepResource extends AbstractDescribableImpl<LockStepResource> 
 	public String toString() {
 		return toString(resource, label, quantity);
 	}
-	
+
 	public static String toString(String resource, String label, int quantity) {
 		// a label takes always priority
 		if (label != null) {

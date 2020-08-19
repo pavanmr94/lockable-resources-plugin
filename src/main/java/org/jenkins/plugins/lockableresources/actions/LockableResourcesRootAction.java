@@ -30,8 +30,8 @@ import org.kohsuke.stapler.StaplerResponse;
 @Extension
 public class LockableResourcesRootAction implements RootAction {
 
-	public static final PermissionGroup PERMISSIONS_GROUP = new PermissionGroup(
-			LockableResourcesManager.class, Messages._LockableResourcesRootAction_PermissionGroup());
+	public static final PermissionGroup PERMISSIONS_GROUP = new PermissionGroup(LockableResourcesManager.class,
+			Messages._LockableResourcesRootAction_PermissionGroup());
 	public static final Permission UNLOCK = new Permission(PERMISSIONS_GROUP,
 			Messages.LockableResourcesRootAction_UnlockPermission(),
 			Messages._LockableResourcesRootAction_UnlockPermission_Description(), Jenkins.ADMINISTER,
@@ -61,7 +61,7 @@ public class LockableResourcesRootAction implements RootAction {
 	}
 
 	public String getDisplayName() {
-	  return Messages.LockableResourcesRootAction_PermissionGroup();
+		return Messages.LockableResourcesRootAction_PermissionGroup();
 	}
 
 	public String getUrlName() {
@@ -84,8 +84,7 @@ public class LockableResourcesRootAction implements RootAction {
 		return LockableResourcesManager.get().getAllLabels().size();
 	}
 
-	public void doUnlock(StaplerRequest req, StaplerResponse rsp)
-			throws IOException, ServletException {
+	public void doUnlock(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
 		Jenkins.get().checkPermission(UNLOCK);
 
 		String name = req.getParameter("resource");
@@ -102,8 +101,7 @@ public class LockableResourcesRootAction implements RootAction {
 		rsp.forwardToPreviousPage(req);
 	}
 
-	public void doReserve(StaplerRequest req, StaplerResponse rsp)
-		throws IOException, ServletException {
+	public void doReserve(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
 		Jenkins.get().checkPermission(RESERVE);
 
 		String name = req.getParameter("resource");
@@ -122,8 +120,55 @@ public class LockableResourcesRootAction implements RootAction {
 		rsp.forwardToPreviousPage(req);
 	}
 
-	public void doUnreserve(StaplerRequest req, StaplerResponse rsp)
-		throws IOException, ServletException {
+	public void doReassign(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+		Jenkins.getInstance().checkPermission(RESERVE);
+
+		String name = req.getParameter("resource");
+		LockableResource r = LockableResourcesManager.get().fromName(name);
+		if (r == null) {
+			rsp.sendError(404, "Resource not found " + name);
+			return;
+		}
+
+		String userName = getUserName();
+		if (userName == null || !Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER))
+			throw new AccessDeniedException2(Jenkins.getAuthentication(), RESERVE);
+
+		if (userName.equals(r.getReservedBy())) {
+			// Can not achieve much by re-assigning the
+			// resource I already hold to myself again,
+			// that would just burn the compute resources.
+			// ...unless something catches the event? (TODO?)
+			return;
+		}
+
+		List<LockableResource> resources = new ArrayList<>();
+		resources.add(r);
+		LockableResourcesManager.get().reassign(resources, userName);
+
+		rsp.forwardToPreviousPage(req);
+	}
+
+	public void doSteal(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
+		Jenkins.getInstance().checkPermission(RESERVE);
+
+		String name = req.getParameter("resource");
+		LockableResource r = LockableResourcesManager.get().fromName(name);
+		if (r == null) {
+			rsp.sendError(404, "Resource not found " + name);
+			return;
+		}
+
+		List<LockableResource> resources = new ArrayList<>();
+		resources.add(r);
+		String userName = getUserName();
+		if (userName != null)
+			LockableResourcesManager.get().steal(resources, userName);
+
+		rsp.forwardToPreviousPage(req);
+	}
+
+	public void doUnreserve(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
 		Jenkins.get().checkPermission(RESERVE);
 
 		String name = req.getParameter("resource");
@@ -136,8 +181,7 @@ public class LockableResourcesRootAction implements RootAction {
 		String userName = getUserName();
 		if ((userName == null || !userName.equals(r.getReservedBy()))
 				&& !Jenkins.get().hasPermission(Jenkins.ADMINISTER))
-			throw new AccessDeniedException2(Jenkins.getAuthentication(),
-					RESERVE);
+			throw new AccessDeniedException2(Jenkins.getAuthentication(), RESERVE);
 
 		List<LockableResource> resources = new ArrayList<>();
 		resources.add(r);
@@ -146,8 +190,7 @@ public class LockableResourcesRootAction implements RootAction {
 		rsp.forwardToPreviousPage(req);
 	}
 
-	public void doReset(StaplerRequest req, StaplerResponse rsp)
-		throws IOException, ServletException {
+	public void doReset(StaplerRequest req, StaplerResponse rsp) throws IOException, ServletException {
 		Jenkins.get().checkPermission(UNLOCK);
 
 		String name = req.getParameter("resource");

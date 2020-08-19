@@ -42,8 +42,7 @@ import org.kohsuke.stapler.export.Exported;
 import org.kohsuke.stapler.export.ExportedBean;
 
 @ExportedBean(defaultVisibility = 999)
-public class LockableResource extends AbstractDescribableImpl<LockableResource>
-    implements Serializable {
+public class LockableResource extends AbstractDescribableImpl<LockableResource> implements Serializable {
 
   private static final Logger LOGGER = Logger.getLogger(LockableResource.class.getName());
   public static final int NOT_QUEUED = 0;
@@ -54,6 +53,7 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
   private String description = "";
   private String labels = "";
   private String reservedBy = null;
+  private boolean stolen = false;
   private boolean ephemeral;
 
   private long queueItemId = NOT_QUEUED;
@@ -64,13 +64,15 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
   private long queuingStarted = 0;
 
   /**
-   * Was used within the initial implementation of Pipeline functionality using {@link LockStep},
-   * but became deprecated once several resources could be locked at once. See queuedContexts in
-   * {@link LockableResourcesManager}.
+   * Was used within the initial implementation of Pipeline functionality using
+   * {@link LockStep}, but became deprecated once several resources could be
+   * locked at once. See queuedContexts in {@link LockableResourcesManager}.
    *
-   * @deprecated Replaced with LockableResourcesManager.queuedContexts (since 1.11)
+   * @deprecated Replaced with LockableResourcesManager.queuedContexts (since
+   *             1.11)
    */
-  @Deprecated private List<StepContext> queuedContexts = new ArrayList<>();
+  @Deprecated
+  private List<StepContext> queuedContexts = new ArrayList<>();
 
   /** @deprecated Use single-argument constructor instead (since 1.8) */
   @Deprecated
@@ -93,7 +95,10 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
     return this;
   }
 
-  /** @deprecated Replaced with LockableResourcesManager.queuedContexts (since 1.11) */
+  /**
+   * @deprecated Replaced with LockableResourcesManager.queuedContexts (since
+   *             1.11)
+   */
   @Deprecated
   public List<StepContext> getQueuedContexts() {
     return this.queuedContexts;
@@ -152,12 +157,11 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
    * @param script Script to be executed
    * @param params Extra script parameters
    * @return {@code true} if the script returns true (resource matches).
-   * @throws ExecutionException Script execution failed (e.g. due to the missing permissions).
-   *     Carries info in the cause
+   * @throws ExecutionException Script execution failed (e.g. due to the missing
+   *                            permissions). Carries info in the cause
    */
   @Restricted(NoExternalUse.class)
-  public boolean scriptMatches(
-      @Nonnull SecureGroovyScript script, @CheckForNull Map<String, Object> params)
+  public boolean scriptMatches(@Nonnull SecureGroovyScript script, @CheckForNull Map<String, Object> params)
       throws ExecutionException {
     Binding binding = new Binding(params);
     binding.setVariable("resourceName", name);
@@ -166,20 +170,12 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
     try {
       Object result = script.evaluate(Jenkins.get().getPluginManager().uberClassLoader, binding);
       if (LOGGER.isLoggable(Level.FINE)) {
-        LOGGER.fine(
-            "Checked resource "
-                + name
-                + " for "
-                + script.getScript()
-                + " with "
-                + binding
-                + " -> "
-                + result);
+        LOGGER.fine("Checked resource " + name + " for " + script.getScript() + " with " + binding + " -> " + result);
       }
       return (Boolean) result;
     } catch (Exception e) {
-      throw new ExecutionException(
-          "Cannot get boolean result out of groovy expression. See system log for more info", e);
+      throw new ExecutionException("Cannot get boolean result out of groovy expression. See system log for more info",
+          e);
     }
   }
 
@@ -198,8 +194,10 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
     if (reservedBy != null) {
       UserProperty email = null;
       User user = Jenkins.get().getUser(reservedBy);
-      if (user != null) email = user.getProperty(UserProperty.class);
-      if (email != null) return email.getAddress();
+      if (user != null)
+        email = user.getProperty(UserProperty.class);
+      if (email != null)
+        return email.getAddress();
     }
     return null;
   }
@@ -257,8 +255,8 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
 
   /**
    * @see WithBridgeMethods
-   * @deprecated Return value of {@link #getBuild()} was widened from AbstractBuild to Run (since
-   *     1.8)
+   * @deprecated Return value of {@link #getBuild()} was widened from
+   *             AbstractBuild to Run (since 1.8)
    */
   @Deprecated
   private Object getAbstractBuild(final Run owner, final Class targetClass) {
@@ -267,8 +265,10 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
 
   @Exported
   public String getBuildName() {
-    if (getBuild() != null) return getBuild().getFullDisplayName();
-    else return null;
+    if (getBuild() != null)
+      return getBuild().getFullDisplayName();
+    else
+      return null;
   }
 
   public void setBuild(Run<?, ?> lockedBy) {
@@ -312,7 +312,8 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
   private void validateQueuingTimeout() {
     if (queuingStarted > 0) {
       long now = System.currentTimeMillis() / 1000;
-      if (now - queuingStarted > QUEUE_TIMEOUT) unqueue();
+      if (now - queuingStarted > QUEUE_TIMEOUT)
+        unqueue();
     }
   }
 
@@ -321,8 +322,18 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
     this.reservedBy = Util.fixEmptyAndTrim(userName);
   }
 
+  public void setStolen() {
+    this.stolen = true;
+  }
+
+  @Exported
+  public boolean isStolen() {
+    return this.stolen;
+  }
+
   public void unReserve() {
     this.reservedBy = null;
+    this.stolen = false;
   }
 
   public void reset() {
@@ -346,13 +357,18 @@ public class LockableResource extends AbstractDescribableImpl<LockableResource>
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
     LockableResource other = (LockableResource) obj;
     if (name == null) {
-      if (other.name != null) return false;
-    } else if (!name.equals(other.name)) return false;
+      if (other.name != null)
+        return false;
+    } else if (!name.equals(other.name))
+      return false;
     return true;
   }
 
